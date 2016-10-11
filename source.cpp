@@ -2,7 +2,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <ctime>
-// #include <fstream>
+#include <fstream>
 #include <iostream>
 #include <iterator>
 #include <list>
@@ -428,7 +428,7 @@ class Metropolis final: public LongestPathSolver {
         LongestPath lp = LongestPath(graph);
         lp.InitRandomPath();
         debug_info.costs.push_back(lp.Cost());
-        for (size_t i = 0; i < 100; ++i) {
+        for (size_t i = 0; i < 500; ++i) {
             LongestPath next = LongestPath(graph, lp.GetPath(), lp.GetComp());
             next.Modify();
             if (next.Cost() > lp.Cost()) {
@@ -446,7 +446,7 @@ class Metropolis final: public LongestPathSolver {
 //            lp.PrintPath();
             debug_info.costs.push_back(lp.Cost());
             if (annealing)
-                T = T / 1.023;
+                T = T / 1.05;
         }
 //    lp.PrintPath();
     return lp;
@@ -515,7 +515,7 @@ std::vector<std::vector<unsigned>> Test() {
     std::vector<std::vector<unsigned>> data(3);
     for (size_t i = 0; i < iterations; ++i) {
         double edge_probability = (double)rand() / RAND_MAX;
-        auto graph = RandomGraph(100, 0.5);
+        auto graph = RandomGraph(100, edge_probability);
         GradientDescent gd;
         Metropolis met(1, 10000, false);
         Metropolis ann(1, 10000, true);
@@ -525,7 +525,7 @@ std::vector<std::vector<unsigned>> Test() {
         ann.Solve(graph, ann_debug);
         data[0].push_back(gd_debug.costs.back());
         data[1].push_back(met_debug.costs.back());
-        data[3].push_back(ann_debug.costs.back());
+        data[2].push_back(ann_debug.costs.back());
     }
     return data;
 }
@@ -533,11 +533,13 @@ std::vector<std::vector<unsigned>> Test() {
 int main(int argc, const char* argv[]) {
     std::cout << "Using rand seed: " << InitRandSeed(argc, argv) << "\n";
     auto result = Test();
+    std::ofstream fout;
+    fout.open("data.txt");
     for (auto elem : result) {
-        std::cout << "Here:\t";
+        fout << "Here:\t";
         for (auto num : elem)
-            std::cout << num << " ";
-        std::cout << "\n";
+            fout << num << " ";
+        fout << "\n";
     }
     return 0;
 }
