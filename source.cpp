@@ -18,8 +18,6 @@ std::unordered_set<T> SetIntersection (const std::unordered_set<T>& a,
     for (const auto& elem : a)
         if (b.count(elem) != 0)
             c.insert(elem);
-/*    std::set_intersection(a.begin(), a.end(), b.begin(), b.end(),
-                          std::inserter(c, c.begin())); */
     return c;
 }
 
@@ -91,7 +89,6 @@ struct DebugInfo {
     std::vector<size_t> costs;
 };
 
-// Use http://gnuplot.respawned.com/ to plot costs
 std::ostream& operator<<(std::ostream& out, const DebugInfo& debug_info) {
     for (size_t i = 0; i < debug_info.costs.size(); ++i) {
         out << i << " " << debug_info.costs[i] << "\n";
@@ -177,7 +174,7 @@ class LongestPath {
         auto path_it = path.begin();
         for (size_t i = 0; i < rand() % path_size; ++i)
             ++path_it;
-        Graph::Vertex v = *path_it;
+        const Graph::Vertex v = *path_it;
         Graph::VertexSet v_adj;
         v_adj = SetIntersection(graph.AsAdjencyList().at(v), complement);
         size_t comp_size = complement.size();
@@ -224,17 +221,13 @@ class LongestPath {
             auto next_it = path_it;
             if (v == path.front()) {
                 next = *(++next_it);
-                is_front == true;
+                is_front = true;
             }
             if (v == path.back()) {
                 next = *(--next_it);
                 is_front = false;
             }
             Graph::VertexSet next_adj;
-/*            std::set_intersection(graph.AsAdjencyList().at(next).begin(),
-                                  graph.AsAdjencyList().at(next).end(),
-                                  complement.begin(), complement.end(),
-                                  std::inserter(next_adj, next_adj.begin())); */
             next_adj = SetIntersection(graph.AsAdjencyList().at(next), complement);
 
             size_t v_adj_size = v_adj.size();
@@ -247,6 +240,8 @@ class LongestPath {
             size_t variant = 0;
             if (NumNeighbors != 1)
                 variant = rand() % (NumNeighbors - 1); // учтем 0
+//            std::cout << "BEFORE:\n\t";
+//            PrintPath();
             if (0 <= variant && variant < next_adj_size) {
                 auto next_adj_it = next_adj.begin();
                 for (size_t i = 0; i < variant; ++i)
@@ -258,6 +253,9 @@ class LongestPath {
                     path.push_front(*next_adj_it);
                 else
                     path.push_back(*next_adj_it);
+//                std::cout << v << " заменили на " << *next_adj_it << "\n";
+//                std::cout << "AFTER:\n\t";
+                PrintPath();
                 return;
             }
             if (next_adj_size <= variant && variant <  v_adj_size + next_adj_size) {
@@ -270,11 +268,17 @@ class LongestPath {
                     path.push_front(*v_adj_it);
                 else
                     path.push_back(*v_adj_it);
+//                std::cout << "к " << v << " добавили " << *v_adj_it << "\n";
+//                std::cout << "AFTER:\n\t";
+                PrintPath();
                 return;
             }
             if (variant == next_adj_size + v_adj_size) {
                 complement.insert(v);
                 path.erase(path_it);
+//                std::cout << v << " удалили!\n";
+//                std::cout << "AFTER:\n\t";
+                PrintPath();
                 return;
             }
         }
@@ -283,39 +287,28 @@ class LongestPath {
         auto prev_it = path_it;
         auto next = *(++next_it);
         auto prev = *(--prev_it);
+        
         Graph::VertexSet next_adj;
         Graph::VertexSet prev_adj;
-/*        std::set_intersection(graph.AsAdjencyList().at(next).begin(),
-                              graph.AsAdjencyList().at(next).end(),
-                              complement.begin(), complement.end(),
-                              std::inserter(next_adj, next_adj.begin()));
-
-        std::set_intersection(graph.AsAdjencyList().at(prev).begin(),
-                              graph.AsAdjencyList().at(prev).end(),
-                              complement.begin(), complement.end(),
-                              std::inserter(prev_adj, prev_adj.begin()));
-*/
         next_adj = SetIntersection(graph.AsAdjencyList().at(next), complement);
         prev_adj = SetIntersection(graph.AsAdjencyList().at(prev), complement);
 
         Graph::VertexSet substitude; // множество вершин, на которые можно заменить v
-/*        std::set_intersection(next_adj.begin(), next_adj.end(), prev_adj.begin(), prev_adj.end(),
-                             std::inserter(substitude, substitude.begin())); */
         substitude = SetIntersection(next_adj, prev_adj);
+
         Graph::VertexSet prev_add; // множество вершин, которых можно вставить между v и предыдущей вершиной
-/*        std::set_intersection(v_adj.begin(), v_adj.end(), prev_adj.begin(), prev_adj.end(),
-                             std::inserter(prev_add, prev_add.begin())); */
         prev_add = SetIntersection(v_adj, prev_adj);
+       
         Graph::VertexSet next_add; // множество вершин, которых можно вставить между v и следующей вершиной
-/*        std::set_intersection(next_adj.begin(), next_adj.end(), v_adj.begin(), v_adj.end(),
-                             std::inserter(next_add, next_add.begin())); */
         next_add = SetIntersection(next_adj, v_adj);
+
         size_t subs_size = substitude.size();
         size_t next_add_size = next_add.size();
         size_t prev_add_size = prev_add.size();
         bool del_size = 0;
         if (next_adj.count(prev) != 0)
             del_size = 1;
+
         // получили subs_size + next_add_size + prev_add_size + del_size соседей
         size_t NumNeighbors = subs_size + next_add_size + prev_add_size + del_size;
         size_t variant = 0;
@@ -342,7 +335,7 @@ class LongestPath {
         }
         if (subs_size + next_add_size <= variant && 
                 variant < subs_size + next_add_size + prev_add_size) {
-            variant -= subs_size + next_add_size;
+            variant -= (subs_size + next_add_size);
             auto prev_add_it = prev_add.begin();
             for (size_t i = 0; i < variant; ++i)
                 ++prev_add_it;
@@ -420,7 +413,7 @@ class GradientDescent final: public LongestPathSolver {
             }
             debug_info.costs.push_back(lp.Cost());
         }
-        lp.PrintPath();
+//        lp.PrintPath();
         return lp; 
     }
 };
@@ -448,11 +441,12 @@ class Metropolis final: public LongestPathSolver {
                     lp.GetComp() = next.GetComp();                    
                 }
             }
+//            lp.PrintPath();
             debug_info.costs.push_back(lp.Cost());
             if (annealing)
                 T = T / 1.023;
         }
-    lp.PrintPath();
+//    lp.PrintPath();
     return lp;
     }
  private:
@@ -497,7 +491,7 @@ void GraphViz(std::ostream& out, const LongestPath& longest_path) {
 }
 
 void TrySolver(const LongestPathSolver& solver, const Graph& graph) {
-    GraphViz(std::cout, graph);
+//    GraphViz(std::cout, graph);
     auto best_cost = 0;
     size_t results = 0;
     for (int attempt = 1; attempt < 2; ++attempt) {
@@ -517,7 +511,7 @@ void TrySolver(const LongestPathSolver& solver, const Graph& graph) {
 int main(int argc, const char* argv[]) {
     std::cout << "Using rand seed: " << InitRandSeed(argc, argv) << "\n";
 
-    auto graph = RandomGraph(20, 0.2);
+    auto graph = RandomGraph(10, 0.2);
     GradientDescent gradient_descent;
     Metropolis metropolis(1, 100, false);
     Metropolis ann_simulation(1, 100, true);
