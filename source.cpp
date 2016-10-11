@@ -2,10 +2,11 @@
 #include <cmath>
 #include <cstdlib>
 #include <ctime>
+// #include <fstream>
 #include <iostream>
 #include <iterator>
 #include <list>
-#include <limits>
+// #include <limits>
 #include <queue>
 #include <unordered_map>
 #include <unordered_set>
@@ -255,7 +256,7 @@ class LongestPath {
                     path.push_back(*next_adj_it);
 //                std::cout << v << " заменили на " << *next_adj_it << "\n";
 //                std::cout << "AFTER:\n\t";
-                PrintPath();
+//                PrintPath();
                 return;
             }
             if (next_adj_size <= variant && variant <  v_adj_size + next_adj_size) {
@@ -270,7 +271,7 @@ class LongestPath {
                     path.push_back(*v_adj_it);
 //                std::cout << "к " << v << " добавили " << *v_adj_it << "\n";
 //                std::cout << "AFTER:\n\t";
-                PrintPath();
+//                PrintPath();
                 return;
             }
             if (variant == next_adj_size + v_adj_size) {
@@ -278,7 +279,7 @@ class LongestPath {
                 path.erase(path_it);
 //                std::cout << v << " удалили!\n";
 //                std::cout << "AFTER:\n\t";
-                PrintPath();
+//                PrintPath();
                 return;
             }
         }
@@ -397,6 +398,7 @@ Graph RandomGraph(size_t size, double edge_probability) {
 }
 
 class GradientDescent final: public LongestPathSolver {
+ public:
     LongestPath Solve(const Graph& graph, DebugInfo&debug_info) const {
         LongestPath lp = LongestPath(graph);
         lp.InitRandomPath();
@@ -508,19 +510,35 @@ void TrySolver(const LongestPathSolver& solver, const Graph& graph) {
     std::cout << "Results: " << results << std::endl;
 }
 
+std::vector<std::vector<unsigned>> Test() {
+    constexpr unsigned iterations = 100;
+    std::vector<std::vector<unsigned>> data(3);
+    for (size_t i = 0; i < iterations; ++i) {
+        double edge_probability = (double)rand() / RAND_MAX;
+        auto graph = RandomGraph(100, 0.5);
+        GradientDescent gd;
+        Metropolis met(1, 10000, false);
+        Metropolis ann(1, 10000, true);
+        DebugInfo gd_debug, met_debug, ann_debug;
+        gd.Solve(graph, gd_debug);
+        met.Solve(graph, met_debug);
+        ann.Solve(graph, ann_debug);
+        data[0].push_back(gd_debug.costs.back());
+        data[1].push_back(met_debug.costs.back());
+        data[3].push_back(ann_debug.costs.back());
+    }
+    return data;
+}
+
 int main(int argc, const char* argv[]) {
     std::cout << "Using rand seed: " << InitRandSeed(argc, argv) << "\n";
-
-    auto graph = RandomGraph(10, 0.2);
-    GradientDescent gradient_descent;
-    Metropolis metropolis(1, 100, false);
-    Metropolis ann_simulation(1, 100, true);
-    std::cout << "GD:----------------------------------------------\n";
-    TrySolver(gradient_descent, graph);
-    std::cout << "Metropolis:--------------------------------------\n";
-    TrySolver(metropolis, graph);
-    std::cout << "Metropolis with annealing:-----------------------\n";
-    TrySolver(ann_simulation, graph);
+    auto result = Test();
+    for (auto elem : result) {
+        std::cout << "Here:\t";
+        for (auto num : elem)
+            std::cout << num << " ";
+        std::cout << "\n";
+    }
     return 0;
 }
 
