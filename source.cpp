@@ -120,7 +120,8 @@ class LongestPath {
 
     void InitRandomPath() {
         auto it = complement.begin();
-        for (size_t i = 0; i < rand() % complement.size(); ++i)
+        auto random = rand() % complement.size();
+        for (size_t i = 0; i < random; ++i)
             ++it;
         Graph::Vertex v = *it;
         std::vector<bool> used(graph.Size(), false);
@@ -166,7 +167,8 @@ class LongestPath {
         size_t path_size = path.size();
         if (path_size == 0) {
             auto comp_it = complement.begin();
-            for (size_t i = 0; i < rand() % complement.size(); ++i)
+            auto random = rand() % complement.size();
+            for (size_t i = 0; i < random; ++i)
                 ++comp_it;
             complement.erase(*comp_it);
             path.push_back(*comp_it);
@@ -500,7 +502,7 @@ void GraphViz(std::ostream& out, const LongestPath& longest_path) {
 }
 
 void TrySolver(const LongestPathSolver& solver, const Graph& graph) {
-//    GraphViz(std::cout, graph);
+    GraphViz(std::cout, graph);
     auto best_cost = 0;
     size_t results = 0;
     for (int attempt = 1; attempt < 2; ++attempt) {
@@ -518,13 +520,13 @@ void TrySolver(const LongestPathSolver& solver, const Graph& graph) {
 }
 
 std::vector<std::vector<unsigned>> Test() {
-    constexpr unsigned iterations = 100;
+    constexpr unsigned iterations = 500;
     std::vector<std::vector<unsigned>> data(3);
     for (size_t i = 0; i < iterations; ++i) {
         double edge_probability = (double)rand() / RAND_MAX;
         auto graph = RandomGraph(100, edge_probability);
     //    GraphViz(std::cout ,graph);
-        std::cout << edge_probability << "\n";
+    //    std::cout << edge_probability << "\n";
         GradientDescent gd;
         Metropolis met(1, 10000, false);
         Metropolis ann(1, 10000, true);
@@ -546,11 +548,15 @@ int main(int argc, const char* argv[]) {
     std::ofstream fout;
     fout.open("data.txt");
     for (auto elem : result) {
-        fout << "Here:\t";
         for (auto num : elem)
             fout << num << " ";
         fout << "\n";
     }
+/*    Graph graph = RandomGraph(10, 0.2);
+    GradientDescent gd;
+    Metropolis met(1, 100, true);
+    TrySolver(gd, graph);
+    TrySolver(met, graph); */
     return 0;
 }
 
