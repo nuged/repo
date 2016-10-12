@@ -519,9 +519,9 @@ void TrySolver(const LongestPathSolver& solver, const Graph& graph) {
     std::cout << "Results: " << results << std::endl;
 }
 
-std::vector<std::vector<unsigned>> Test() {
-    constexpr unsigned iterations = 500;
-    std::vector<std::vector<unsigned>> data(3);
+std::vector<std::vector<DebugInfo>> Test() {
+    constexpr unsigned iterations = 100;
+    std::vector<std::vector<DebugInfo>> data(3);
     for (size_t i = 0; i < iterations; ++i) {
         double edge_probability = (double)rand() / RAND_MAX;
         auto graph = RandomGraph(100, edge_probability);
@@ -534,9 +534,9 @@ std::vector<std::vector<unsigned>> Test() {
         gd.Solve(graph, gd_debug);
         met.Solve(graph, met_debug);
         ann.Solve(graph, ann_debug);
-        data[0].push_back(gd_debug.costs.back());
-        data[1].push_back(met_debug.costs.back());
-        data[2].push_back(ann_debug.costs.back());
+        data[0].push_back(gd_debug);
+        data[1].push_back(met_debug);
+        data[2].push_back(ann_debug);
         std::cout << i << "th iteration finished!\n";
     }
     return data;
@@ -545,13 +545,28 @@ std::vector<std::vector<unsigned>> Test() {
 int main(int argc, const char* argv[]) {
     std::cout << "Using rand seed: " << InitRandSeed(argc, argv) << "\n";
     auto result = Test();
-    std::ofstream fout;
-    fout.open("data.txt");
-    for (auto elem : result) {
-        for (auto num : elem)
-            fout << num << " ";
-        fout << "\n";
+    std::ofstream gd_out, met_out, ann_out;
+    gd_out.open("gd.txt");
+    met_out.open("met.txt");
+    ann_out.open("ann.txt");
+    for (auto& dbg : result[0]) {
+        for (auto& elem : dbg.costs)
+            gd_out << elem << " ";
+        gd_out << "\n";
     }
+     for (auto& dbg : result[1]) {
+        for (auto& elem : dbg.costs)
+            met_out << elem << " ";
+        met_out << "\n";
+    }
+     for (auto& dbg : result[2]) {
+        for (auto& elem : dbg.costs)
+            ann_out << elem << " ";
+        ann_out << "\n";
+    }
+    gd_out.close();
+    met_out.close();
+    ann_out.close();
 /*    Graph graph = RandomGraph(10, 0.2);
     GradientDescent gd;
     Metropolis met(1, 100, true);
