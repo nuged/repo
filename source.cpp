@@ -173,9 +173,12 @@ class LongestPath {
             return;
         }
         auto path_it = path.begin();
-        for (size_t i = 0; i < rand() % path_size; ++i)
+        auto index = rand() % path_size;
+//        std::cout << index << "\n";
+        for (size_t i = 0; i < index; ++i)
             ++path_it;
         const Graph::Vertex v = *path_it;
+//        std::cout << "V:\t" << v << "\n";
         Graph::VertexSet v_adj;
         v_adj = SetIntersection(graph.AsAdjencyList().at(v), complement);
         size_t comp_size = complement.size();
@@ -409,6 +412,10 @@ class GradientDescent final: public LongestPathSolver {
                 break;
             LongestPath next = LongestPath(graph, lp.GetPath(), lp.GetComp());
             next.Modify();
+//            std::cout << "lp:\t";
+//            lp.PrintPath();
+//            std::cout << "nt:\t";
+//            next.PrintPath();
             if (next.Cost() > lp.Cost()) {
                 lp.GetPath() = next.GetPath();
                 lp.GetComp() = next.GetComp();
@@ -428,7 +435,7 @@ class Metropolis final: public LongestPathSolver {
         LongestPath lp = LongestPath(graph);
         lp.InitRandomPath();
         debug_info.costs.push_back(lp.Cost());
-        for (size_t i = 0; i < 500; ++i) {
+        for (size_t i = 0; i < 1000; ++i) {
             LongestPath next = LongestPath(graph, lp.GetPath(), lp.GetComp());
             next.Modify();
             if (next.Cost() > lp.Cost()) {
@@ -446,7 +453,7 @@ class Metropolis final: public LongestPathSolver {
 //            lp.PrintPath();
             debug_info.costs.push_back(lp.Cost());
             if (annealing)
-                T = T / 1.05;
+                T = T / 1.02;
         }
 //    lp.PrintPath();
     return lp;
@@ -516,6 +523,8 @@ std::vector<std::vector<unsigned>> Test() {
     for (size_t i = 0; i < iterations; ++i) {
         double edge_probability = (double)rand() / RAND_MAX;
         auto graph = RandomGraph(100, edge_probability);
+    //    GraphViz(std::cout ,graph);
+        std::cout << edge_probability << "\n";
         GradientDescent gd;
         Metropolis met(1, 10000, false);
         Metropolis ann(1, 10000, true);
@@ -526,6 +535,7 @@ std::vector<std::vector<unsigned>> Test() {
         data[0].push_back(gd_debug.costs.back());
         data[1].push_back(met_debug.costs.back());
         data[2].push_back(ann_debug.costs.back());
+        std::cout << i << "th iteration finished!\n";
     }
     return data;
 }
